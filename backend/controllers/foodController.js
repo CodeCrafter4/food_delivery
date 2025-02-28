@@ -4,24 +4,23 @@ import fs from 'fs'
 
 // Add food item
 const addfood = async (req, res) => {
-  
-
-  let image_filename = req.file.filename; // Use req.file.filename safely
-
-  const food = new foodModel({
-    name: req.body.name,
-    description: req.body.description,
-    price: req.body.price,
-    category: req.body.category,
-    image: image_filename,
-  });
-
   try {
-    await food.save();
-    res.json({ success: true, message: "Food Added" });
+    // The image URL is now available in req.file.path thanks to our uploadToCloudinary middleware
+    const imageUrl = req.file ? req.file.path : null;
+    
+    const newFood = new foodModel({
+      name: req.body.name,
+      description: req.body.description,
+      price: req.body.price,
+      category: req.body.category,
+      image: imageUrl, // Make sure we're saving the Cloudinary URL
+    });
+
+    const savedFood = await newFood.save();
+    res.json({ success: true, food: savedFood });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error('Error adding food:', error);
+    res.json({ success: false, message: "Error adding food" });
   }
 };
 
